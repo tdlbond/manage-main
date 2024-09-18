@@ -1,0 +1,16 @@
+{
+  "id": "4686687",
+  "name": "公共后台管理系统",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1613452",
+      "name": "验证码",
+      "font_class": "yanzhengma",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    }
+  ]
+}

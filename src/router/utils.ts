@@ -202,17 +202,17 @@ function initRouter() {
       });
     } else {
       return new Promise(resolve => {
-        getAsyncRoutes().then(({ data }) => {
-          handleAsyncRoutes(cloneDeep(data));
-          storageLocal().setItem(key, data);
+        getAsyncRoutes().then(({ content }) => {
+          handleAsyncRoutes(cloneDeep(content));
+          storageLocal().setItem(key, content);
           resolve(router);
         });
       });
     }
   } else {
     return new Promise(resolve => {
-      getAsyncRoutes().then(({ data }) => {
-        handleAsyncRoutes(cloneDeep(data));
+      getAsyncRoutes().then(({ content }) => {
+        handleAsyncRoutes(cloneDeep(content));
         resolve(router);
       });
     });

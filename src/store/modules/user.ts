@@ -7,14 +7,10 @@ import {
   routerArrays,
   storageLocal
 } from "../utils";
-import {
-  type UserResult,
-  type RefreshTokenResult,
-  getLogin,
-  refreshTokenApi
-} from "@/api/user";
+import { type RefreshTokenResult, getLogin, refreshTokenApi } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
+import type { HttpResponseData } from "@/utils/http/types.d";
 
 export const useUserStore = defineStore({
   id: "pure-user",
@@ -66,10 +62,14 @@ export const useUserStore = defineStore({
     },
     /** 登入 */
     async loginByUsername(data) {
-      return new Promise<UserResult>((resolve, reject) => {
+      return new Promise<HttpResponseData<string>>((resolve, reject) => {
         getLogin(data)
           .then(data => {
-            if (data?.success) setToken(data.data);
+            // if (data?.success) setToken(data.data);
+            // resolve(data);
+            if (data.code === "00000") {
+              setToken(data.content);
+            }
             resolve(data);
           })
           .catch(error => {
@@ -91,11 +91,11 @@ export const useUserStore = defineStore({
     async handRefreshToken(data) {
       return new Promise<RefreshTokenResult>((resolve, reject) => {
         refreshTokenApi(data)
-          .then(data => {
-            if (data) {
-              setToken(data.data);
-              resolve(data);
-            }
+          .then(_data => {
+            // if (data) {
+            //   setToken(data.data);
+            //   resolve(data);
+            // }
           })
           .catch(error => {
             reject(error);

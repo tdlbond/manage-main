@@ -45,3 +45,9 @@ export default class PureHttp {
     config?: PureHttpRequestConfig
   ): Promise<T>;
 }
+
+export interface HttpResponseData<T> {
+  code: string;
+  content: T;
+  message: string;
+}

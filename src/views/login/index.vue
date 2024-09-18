@@ -7,16 +7,19 @@ import { useNav } from "@/layout/hooks/useNav";
 import type { FormInstance } from "element-plus";
 import { useLayout } from "@/layout/hooks/useLayout";
 import { useUserStoreHook } from "@/store/modules/user";
-import { initRouter, getTopMenu } from "@/router/utils";
+import { initRouter, getTopMenu, addPathMatch } from "@/router/utils";
 import { bg, avatar, illustration } from "./utils/static";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, reactive, toRaw, onMounted, onBeforeUnmount } from "vue";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
+import { getCaptcha } from "@/api/user";
+import { usePermissionStore } from "@/store/modules/permission";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
 import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
+import { uuid } from "@pureadmin/utils";
 
 defineOptions({
   name: "Login"
@@ -33,8 +36,10 @@ dataThemeChange(overallStyle.value);
 const { title } = useNav();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123"
+  username: "tdl",
+  password: "qwer1234",
+  code: "",
+  uuid: ""
 });
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -43,18 +48,33 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     if (valid) {
       loading.value = true;
       useUserStoreHook()
-        .loginByUsername({ username: ruleForm.username, password: "admin123" })
+        .loginByUsername({
+          username: ruleForm.username,
+          password: ruleForm.password,
+          code: ruleForm.code,
+          uuid: ruleForm.uuid
+        })
         .then(res => {
-          if (res.success) {
-            // 获取后端路由
-            return initRouter().then(() => {
-              router.push(getTopMenu(true).path).then(() => {
-                message("登录成功", { type: "success" });
-              });
-            });
+          console.log(res);
+          if (res.code === "00000") {
+            usePermissionStore().handleWholeMenus([]);
+            addPathMatch();
+            console.log(getTopMenu(true).path);
+            router.push({ path: getTopMenu(true).path });
+            message("登录成功", { type: "success" });
           } else {
-            message("登录失败", { type: "error" });
+            getCaptchaAsync();
           }
+          // if (res.success) {
+          //   // 获取后端路由
+          //   return initRouter().then(() => {
+          //     router.push(getTopMenu(true).path).then(() => {
+          //       message("登录成功", { type: "success" });
+          //     });
+          //   });
+          // } else {
+          //   message("登录失败", { type: "error" });
+          // }
         })
         .finally(() => (loading.value = false));
     }
@@ -68,8 +88,17 @@ function onkeypress({ code }: KeyboardEvent) {
   }
 }
 
+const imgUrl = ref("");
+const getCaptchaAsync = async () => {
+  const data = await getCaptcha();
+  console.log(data);
+  imgUrl.value = data.content.img;
+  ruleForm.uuid = data.content.uuid;
+};
+
 onMounted(() => {
   window.document.addEventListener("keypress", onkeypress);
+  getCaptchaAsync();
 });
 
 onBeforeUnmount(() => {
@@ -139,6 +168,25 @@ onBeforeUnmount(() => {
               </el-form-item>
             </Motion>
 
+            <Motion :delay="200">
+              <el-form-item prop="code">
+                <div class="wrapper-code flex w-full">
+                  <el-input
+                    v-model="ruleForm.code"
+                    clearable
+                    placeholder="验证码"
+                    :prefix-icon="useRenderIcon('IF-icon-yanzhengma')"
+                  />
+                  <img
+                    class="img cursor-pointer"
+                    :src="imgUrl"
+                    alt="验证码"
+                    @click="getCaptchaAsync"
+                  />
+                </div>
+              </el-form-item>
+            </Motion>
+
             <Motion :delay="250">
               <el-button
                 class="w-full mt-4"
@@ -164,5 +212,14 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 :deep(.el-input-group__append, .el-input-group__prepend) {
   padding: 0;
+}
+
+.wrapper-code {
+  .img {
+    width: 100px;
+    margin-left: 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+  }
 }
 </style>
